@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pv-pvc
+spec:
+  containers:
+   - name: nginx
+     image: nginx:1.14.2
+     ports:
+       - containerPort: 80
+     volumeMounts:
+       - name: first-pvc  # This name should match with the below volume name 
+         mountPath: '/persistent_volume'       
+  volumes:
+     - name: first-pvc
+       persistentVolumeClaim:
+            claimName: my-pvc #This name should match the name of pvc object name
