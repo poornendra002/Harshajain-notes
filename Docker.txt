@@ -1,0 +1,598 @@
+
+1) Install Docker 
+	docker install ubuntu 
+
+2) Create a Docker hub account 
+	Login to your hub account  in the host machine 
+		docker login 
+
+3) Pull and try a sample image 
+	a. docker pull ubuntu 
+	b. docker pull jenkins/jenkins:lts
+
+4) List the existing local images 
+	docker images 
+
+5) Try to create a container out of pulled image
+	a. docker run -it -d ubuntu /bin/bash 
+	b. docker run -it -d --name myjenkins -p 8080:8080 -p 50000:50000 -v /var/jenkins_home jenkins/jenkins:lts
+
+6) List containers 
+	docker ps 
+		(or)
+	docker container ls 
+
+7) To get Jenkins admin password 
+	docker logs <container_id / container_name> 
+
+
+Docker 
+	Docker is one of the tools that used the idea of the isolated resources to 
+	create a container that allows applications to be packaged with all the 
+	dependencies installed and ran wherever we wanted.
+	
+	Docker can only run on Linux machines this means I cant install Docker directly on Windows or any other OS.
+	If I want install Docker on windows then I need to run a Linux VM in windows on top that I need to run Docker.
+
+Virtualization (VM)
+	- VM is way of running virtual OS on top a host OS using a special software called Hypervisor.
+	- VM directly shares the hardware of the host OS. 
+
+					VM 					vs 			Containerisation 
+	1. Virtualization at hardware level  		1. Virtualization at OS level 
+	2. Heavyweight - consume more host 		2. Lightweight
+	   resources 	
+	3. VM uses hypervisor 				3. containerisation tool is used 
+	4. limited performance - Boot up time           4. Native performance - usually boot 
+		is more which is in minutes 	           fast in seconds.
+	5. Consumes more storage 		        5. Shares OS storage means only uses 
+							   required storage.
+	6. Supports all OS 				6. Supports on Linux
+
+host machine 
+	This is the machine in which docker is running 
+	
+
+Docker images 
+
+	List docker images 
+	    docker images 
+
+	To download a docker images / How to use hub images 
+	   docker pull <image_name>:<tag>
+		ex: docker pull ubuntu:18.04
+	   
+	   Note: If we won't provide any tag then docker will consider 'latest' as default tag
+	
+	To upload an images to a registry 
+	   docker push <username>/<repo_name>:<tag>
+
+		ex: docker push harshajain/my_ubuntu:1.0
+
+	To tag a image 
+	   docker tag <old_image>:<tag> <new_image>:<tag>
+		
+	To delete a image/images 
+	   docker rmi <image_name1>:<tag> <image_name2>:<tag>
+		    (OR)
+	   docker rmi <image_id1> <image_id2>
+		
+          To force delete a image 
+		docker rmi -f <image_id>
+	
+       To list all image id's 
+	  docker images -q 
+
+       To delete all the images 
+	  docker images -q | xargs docker rmi
+		        (OR)
+	  docker rmi $(docker images -q)
+
+Docker container 
+	A container is a set of isolated processes and resources. Linux achieves 
+	this by using namespaces, which allows processes to access only resources 
+	in that particular namespace, which allows having a process tree means set 
+	of processes that is completely independent of the rest of the systems processes.
+	
+	Docker definition: A container is a standard unit of software that packages 
+	up code and all its dependencies so the application runs quickly and reliably 
+	from one computing environment to another.
+
+       To list all running containers 
+	   docker ps 
+		(or)
+	   docker container ls 
+       
+       To list all containers 
+	   docker ps -a 
+ 		(or)
+	   docker container ls -a
+
+       To Delete a container 	
+	   docker rm <container_name>
+	          (or)
+	   docker rm <container_ID>
+		
+       To delete a running container 
+	   
+	1. Gracefull delete 
+	   a. Stop the running container 
+		docker stop <container_name>
+			(or)
+		docker stop <container_ID>
+           
+	   b. Delete the stopped container 	
+	        docker rm <container_name>
+			(or)
+		docker rm <container_ID>
+
+	    Best way: docker rm $(docker stop <container_name / container_id>)	
+
+			(OR)
+
+        2. Delete by force 
+	      docker rm -f <container_name/container_ID> 
+           
+       To stop all running container 
+	    docker stop $(docker ps -q)
+       
+       To delete all stopped containers 
+	    docker rm $(docker ps -q --filter "status=exited")	 	
+       			(OR)
+	    docker container prune 
+		
+To clean docker environment 
+	docker system prune 
+	
+	Note: except volumes it will remove below resources 
+		- all stopped containers
+  		- all networks not used by at least one container
+  		- all dangling images
+  		- all dangling build cache       
+       
+	To remove unused volumes 
+	  docker system prune --volumes
+
+        To remove only unused images 
+	  docker image prune 
+
+	To remove only stopped container 
+	  docker container prune 
+
+	To remove only un-attached volumes 
+	  docker volume prune 
+	
+	To remove only unused network 
+	  docker network prune 
+
+	Note: To avoid user confirmation use '-f'
+		ex: docker container prune -f 
+			      (or)
+		    yes | docker container prune 	 
+
+	To create a container 
+		docker run -it -d --name <container_name> <image>:<tag> 
+		
+		DESC: -i: Interactive mode
+		      -t: enable tty terminal
+ 		      -d: To create container in detached mode (Background)
+		      --name: To provide a used defined name to container.		
+
+Assignment: 
+	docker cp 
+		Copy from host machine to container
+			docker cp <host_path> <container_name>:<container_path>
+
+		Copy from container to host machine
+			docker cp <container_name>:<container_path> <host_path> 
+
+	docker pause
+		docker pause <container_name> 	
+			- Use to pause the running container and processes running in it 
+		To unpause 
+			docker unpause <container_name>	
+
+	docker restart 
+		To restart a container 
+	
+	docker top - To list the processes running inside a container 
+			docker top <contaienr_ID>
+
+	docker logs 
+		docker logs <contaienr_ID>
+			Will display all the stdout and std error of a container 
+			
+	docker inspect 
+		used to get the complete information (metadata) on docker objects in JSON format output.
+
+	docker info 
+		information of docker daemon 
+
+
+To Login to a container 
+	1. Docker attach 
+			It will attach to the main process/Command running inside a container 
+				docker attach <contaienr_ID>
+
+			Note: To safely exit after attach <ctrl> + qp
+ 
+	2. Docker exec 
+			using exec we can run any command inside a running container. 
+				docker exec -it <container_id> <command>
+			
+			we can login to a running container by using exec 
+				docker exec -it <container_id> /bin/bash 
+		
+
+Docker custom image / Dockerfile / Docker instructions 
+	
+	Dockerfile
+		Dockerfile is used to create custom images by using any stock image or other image as base image.
+		In Dockerfile we can write some set of instructions to update any image.
+	
+		To create image from Dockerfile
+			docker build -t my_ubuntu .
+	
+	FROM ubuntu
+		FROM is the first instruction in the every Dockerfile
+		FROM is used to specify the base image on top which all the other 
+			instruction will run in the same Dockerfile.
+			
+		FROM <image_name>:<tag>
+		
+	RUN 
+		Normal shell command or the commands supported by the base image are executed using this instruction.
+		we can have n number of RUN in a single Dockerfile.
+		
+		Normal command format 
+			RUN <command>
+			
+		exec format 
+			RUN ['<command>','<param1>','<param2>']	
+			RUN ['apt','update']	
+			RUN ['apt','install','-y','git']	
+			RUN ['ls','-lrt']	 
+
+	COPY and ADD 
+		Both copy and add instruction is used to copy files and directories from 
+		host machine build location to the image and the container created from it.
+	
+		ADD supports extra source formats 
+	  	  - If the source is a compressed file then ADD will automatically uncompress it 
+	    		in the destination.
+	      - If the source is a downloadable link then ADD will automatically download the 
+	        file in the destination.
+
+		COPY <source_path_from_build_context> <destination_inside_image>	  
+		ADD <source_path_from_build_context> <destination_inside_image>	  
+
+Assignment: 
+	1. Complete demo COPY & ADD instruction difference.
+	2. Create ubuntu custom image with all the required package installed.
+		packages: git, curl, tomcat, jq
+	3. Create an image from a container.
+		a. create a container 
+		b. login to above container and create some file/directories 
+		c. Create an image from above container.
+		d. create second container from above image 
+		e. The file created in the first container should exists in this container.
+
+
+	ENV 
+	   This instruction is used to set the environment variable inside the container. 
+	   Using this instruction we can create env variables at build time which means in the docker images.
+		ex:
+			
+		   1. For individual variable	 
+		      ENV <variable_name> <value>
+			     (OR)
+		      ENV <variable_name>=<value>
+
+		   2. For multiple variable
+	 	      ENV <variable_name1>=<value1> <variable_name2>=<value2> .....
+
+	   To create environment variables at run time (means in containers)
+		1. With the docker run command 
+			docker run -e <variable_name>=<value> -e <variable_name>=<value>
+		2. With a list of variables in a file (.env file)
+			docker run --env-file <file_path> ...		
+		
+	ARG 
+	   using this instruction we can pass parameters to Dockerfile as user inputs.
+		
+		ex: ARG <arg_variable_name>=<value>
+
+		Note: <value> acts as default value to the arg_variable means if user does not set 
+		      the arg value at build time this value will be used.
+
+		To pass the value at build time 
+			docker build --build-arg <arg_variable_name>=<user_value> 
+
+	CMD vs ENTRYPOINT 
+		- Both CMD and ENTRYPOINT are used to define the default execution command of the container (the command 
+	   	  which will be executed in the container as main process).
+		- If we use multiple CMD or ENTRYPOINT in the same Dockerfile only the last one will 
+		  be considered.
+		- If we use both CMD and ENTRYPOINT in the same Dockerfile, then ENTRYPOINT gets the 
+	          highest priority and the command defined using CMD will be as parameters to ENTRYPOINT.
+
+		Difference 
+		   - CMD can be completely overridden at the runtime (with docker run at the end we can provide 
+	   	     the command to override the CMD). 
+		   - ENTRYPOINT can't be overridden at the runtime but the command passed at the runtime 
+		     will become parameters to ENTRYPOINT command defined in Dockerfile.
+		
+		Syntax: we can define command in 2 ways 
+			1. shell format 
+		   	   CMD "ls -lrt"
+		
+			2. EXEC format 
+			   - Always first element is command.
+			   - Except first element all the other elements are parameters to command. 
+
+    			   CMD ["ls","-lrt"]  
+
+
+Assignment: Q. How to override the ENTRYPOINT from the runtime?
+		Yes, (Find out how?)
+		  
+
+	WORKDIR 
+		This is used to set the working directory for all the instructions that follows it.
+		such as RUN, CMD, ENTRYPOINT, COPY, ADD .... 	
+		   
+		ex: WORKDIR <path_in_container>
+	   
+		
+
+IQ: What is the difference b/w CMD and ENTRYPOINT ? 
+    What is the difference b/w COPY and ADD ?
+    What is the difference b/w ENV and ARG ?	
+    What is the difference b/w Expose and Publish ?	
+
+	EXPOSE 
+	     Syntax: EXPOSE <port_number>
+	     - Used to expose a port to the docker network so that all the other containers in 
+	       the same docker network can access it.
+	     - Exposes the port with in the host machine.	
+		
+	MAINTAINER
+	     used to provide the author name metadata.
+
+Docker volume 
+	Bind mount 
+		- we mount a host location (file/directory) inside a container location 	
+			docker -v <host_path>:<container_path>
+		- The changes made in host will retain in container and also changes made inside container in this 
+		  location will retain in host 
+		- If container is deleted host directory will not be deleted (data persistence).
+		- It is not preferable to mount a single directory to multiple container. (multiple containers processes 
+		  may try write the data to same file which is not possible)
+
+	Volumes 
+		- The are docker managed filesystem and we use docker commands to manage these volumes.
+		- Volumes are easier to manage, backup and migrate than bind mounts.
+		- We can use different source filesystem called storage drivers (EBS, EFS, s3) 
+		- Default location of docker volume is /var/lib/docker/volumes/<volume_name>
+		To create a docker volume 
+			docker 	volume create <volume_name>	
+
+		To delete volume 
+			docker volume rm <volume_name>
+
+		To mount a volume 
+			docker -v <volume_name>:<container_path>
+
+		Docker volume with efs driver 
+			docker volume create \
+    				--driver local \
+    				--opt type=nfs \
+    				--opt o=addr=fs-03bc6dc9ceb082421.efs.ap-south-1.amazonaws.com,rw,nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 \
+    				--opt device=:/ efs 
+
+Docker networking 
+   Publish 
+	Publish will bind the container application port to the host machine port so that 
+	we can access from out side world with host machine port.
+
+	Publish = port mapping of container to host machine + Expose 
+	
+	To publish a port 		
+		docker run -p <host_port>:<container_port>
+	
+	To publish all the exposed ports 
+		docker run -P 
+		-P publish_all, It binds all the exposed ports of container to host machine. 
+	
+	To map direct IP address to the host 
+		port to port 
+			docker run -p <ip>:<host_port>:<container_port>	
+		Any to port 
+			docker run -p <ip>::<container_port>	
+	
+	Range of ports 
+		many to many 
+			docker run -p 8080-8085:8086-8090
+			Note: The total number of host ports in range should be same as container port range
+		many to one
+			docker run -p 8080-8090:8080
+			This will map to any one of the host port which is free
+
+Assignment: Try docker mounts and volumes.
+	    Use EFS/s3 as the docker volume 	
+	
+    Docker network type (Bridge, none, host)
+	1. Bridge 
+		- This is a private internal network created by docker on the host machine 
+		  by name docker0	
+		- This is the default network type for all the container which are created 
+          without any network configurations.
+		- By default all the containers in the same bridge can communicate with 
+		  each other without any extra configuration.	
+		- We cannot use container name for communication only IP address is allowed in 
+		  default bridge.
+
+		Custom bridge 
+			To create bridge network 
+				docker network create --driver bridge my_bride 
+			
+			- In custom bridge containers can communicate with eachother with container 
+			  name and also with IP address.
+	
+
+		Example: 
+			
+			bridge      ap1 - 172.17.0.2  ap2 - 172.17.0.3
+			my_bridge   ap3 - 172.18.0.2  ap4 - 172.18.0.3    
+
+			Check Ping
+    				1) Check can we ping by the name 
+        				
+    
+    				2) Check bridge to bridge communication 
+        				ap1 -> ap3 or ap4 
+
+	2. Host 		  
+		- This driver removes the network isolation between docker and the host.
+		- The containers are directly connected to host machine network without  
+		  extra layer of any docker network.
+		- Shares the same TCP.IP stack and same namespace of host machine.  
+		- All the network interfaces which are there in host machine are 
+		  accessible by this container.
+
+	3. None 
+		- Containers are not attached to any network by docker.
+		- All the required network configurations need to be done 
+		  manually.
+		- The host or any other containers won't be able to communicate 
+		  with this container until a custom network is configured.
+
+	Overlay 
+		- Overlay networks are meant to define network communication of containers hosted on different host machines. 
+		- To create such a network we use the ‘overlay’ driver. 
+		- The overlay driver is a native driver by docker that helps to create a single layer2 broadcast domain across containers 
+		  hosted on multiple Docker host machines. 
+
+	Assignment: Connect 2 bridge networks 
+			docker network connect 
+
+
+Multistage build 
+	How to optimise docker build process ?
+	How to reduce the size of the docker image or container ? 
+
+	After docker 1.6 version docker released this option.
+	1. There are 2 problems with the normal build process 
+			1. Size: challenge is to keep the image and its containers size as minimal as  		
+			   possible.
+			2. larger the surface area more the application is vulnerable to attacks. 
+	
+		- Multistage build allows us to define multiple FROM in same Dockerfile.
+		- Dependency between multiple FROM is maintained by naming FROM using 
+		  AS keyword and we can refer this name in another FROM.
+
+				FROM <base_image> AS <STAGE_NAME>
+				
+		- Only the final FROM image is created leaving back all the other FROM.
+		- Copy only the required files from the named FROM stage like below.
+				FROM final_build
+				COPY --from <STAGE_NAME> <src_named_stage> <dest>
+	
+	2. Always try to use the slim / alpine / stretch version of base image instead 
+	   of using the fully loaded base image.
+	   
+
+Build and deploy maven application using docker.
+	docker build -t maven-app .
+	docker stop calc
+	docker cp calc:/usr/local/tomcat/webapps/calculator.war /home/ubuntu/
+	docker run -it --rm -d -p 8095:8080 --name calc maven-app 
+		
+Docker maven direct run example 
+
+	To build the war file
+		docker run -it --rm -v $(pwd)/libraries:/root/.m2 -w /app -v "$(pwd)":/app maven mvn clean package
+	
+	To build the war file with test phase skipped
+		docker run -it --rm -v $(pwd)/libraries:/root/.m2 -w /app -v "$(pwd)":/app maven mvn clean package -Dmaven.test.skip=true
+	
+	To create a custom network of type bridge 
+		docker network create --driver bridge maven
+
+	To run a test sever for Integration test 
+		docker run -it -d --rm -v maven_repo:/root/.m2 \
+    			-v "$(pwd)":/app -w /app \
+   		 	-p 9999:9999 \
+    			--network maven \
+    			--name jetty_container maven:3.8.6-openjdk-18-slim mvn jetty:run
+
+	To run Junit test 
+		docker run -it --rm -v maven_repo:/root/.m2 \
+   			-v "$(pwd)":/app -w /app \
+    			--network maven maven:3.8.6-openjdk-18-slim mvn clean test		
+
+	To run Integration test 
+		docker run -it --rm -v maven_repo:/root/.m2 \
+    			-v "$(pwd)":/app -w /app \
+    			--network maven maven:3.8.6-openjdk-18-slim mvn clean integration-test  
+
+Docker Architecture 
+
+	Docker Daemon 
+		- A background process that manages docker images, containers, network and volumes.
+		- This Daemon constantly listens for docker API request and processes them.
+	
+	Docker REST API 
+		- API which is used by applications to interact with the docker daemon. 
+		
+	Docker CLI 
+		- It is a command line interface for interacting with docker daemon through
+		  REST api.
+	
+	Docker Objects 
+		- Images, Containers, Networks, Vloumes
+
+Benefits of Docker 
+
+	Flexible: 
+		Complex applications cab be divided and containerised in small competents called 
+		microservice. 
+	
+	Lightweight: 
+		Containers share the machine’s OS system kernel and therefore do not require 
+		an OS per application, driving higher server efficiencies and reducing server and licensing costs
+
+	portable: 
+		we can build images anywhere and then deploy to cloud, run anywhere.	
+
+States of container / Lifecycle of container 
+
+	1. Created - if container is newly created and container is not yet started.
+	2. Running - A currently running container. It means there is no problem 
+				 with container to run the process.
+	3. Exited - A container ran and completed of execution with failure.
+	4. paused - A container whose process have been paused. (we can unpause the container)
+	5. Dead - if docker daemon tried and failed to stop a container (host ram full)
+	6. Restarting - container will be in the phase of restarting the main process.
+
+Dangling Images 
+	Dangling images are created while executing layers in image build process that have no relationship 
+	to any tagged images. They no longer serve a purpose and it consume disk space.
+	
+	To list dangling images 
+	    docker images -f dangling=true
+	
+	To remove only dangling images 
+	    docker rmi $(docker images -f dangling=true -q)
+
+   	To delete all unused images including dangling image
+	    docker image prune
+
+	    docker system prune 
+		Remove all unused containers, networks, images (both dangling and unreferenced),
+		and optionally, volumes. 
+		This will remove:
+  		  - all stopped containers
+  		  - all networks not used by at least one container
+  		  - all dangling images
+  		  - all dangling build cache
